@@ -1,54 +1,92 @@
 library(ggplot2)
 library(reshape2)
+library(rdrop2)
 
-my_records = read.csv("data/tracker.csv", header = T, stringsAsFactors = F)
-my_nic_records = read.csv("data/trackernicaless.csv", header = T, stringsAsFactors = F)
+token <- drop_auth()
+saveRDS(token, "droptoken.rds")
+# Upload droptoken to your server
+# ******** WARNING ********
+# Losing this file will give anyone 
+# complete control of your Dropbox account
+# You can then revoke the rdrop2 app from your
+# dropbox account and start over.
+# ******** WARNING ********
+# read it back with readRDS
+token <- readRDS("droptoken.rds")
+# Then pass the token to each drop_ function
+drop_acc(dtoken = token)
 
+outputDir <- "wordcounttrackerdata"
+
+saveData <- function(data) {
+  #data <- t(data)
+  # Create a unique file name
+  fileName <- sprintf("%s_%s.csv", as.integer(Sys.time()), digest::digest(data))
+  # Write the data to a temporary file locally
+  filePath <- file.path(tempdir(), fileName)
+  write.csv(data, filePath, row.names = FALSE, quote = TRUE)
+  # Upload the file to Dropbox
+  drop_upload(filePath, dest = outputDir, dtoken = token)
+}
+
+loadData <- function() {
+  # Read all the files into a list
+  filesInfo <- drop_dir(outputDir, dtoken = token)
+  filePaths <- filesInfo$path
+  data <- lapply(filePaths, drop_read_csv, stringsAsFactors = FALSE)
+  # Concatenate all data together into one data.frame
+  data <- do.call(rbind, data)
+  return(data)
+}
+
+my_records <<- loadData()
 my_records$Date = as.Date(my_records$Date)
+all_records <<- my_records
+
 recordWC <- function(wordcount, date, project, writer) {
   date = as.Date(date)
+  
   if (wordcount <= 0) {
     return()
   }
-  if(grepl("recordNicaless", project) & writer == "recordNicaless.nicaless") {
+  if(grepl("recordNicaless", project)) {
     project = unlist(strsplit(project, "[.]"))[2]
-    writer = unlist(strsplit(writer, "[.]"))[2]
-    nic_record = data.frame(Date = date, Project = project, Writer = writer, Word.Count = wordcount)
-    my_nic_records <<- rbind(my_nic_records, nic_record)
-    write.csv(my_records, file = "data/trackernicaless.csv", row.names = F)
-  }
-  if (project == "Enter the name of your project...") {
-    project = "Untitled"
-  }
-  if (writer == "Enter your name...") {
-    writer = "anonymous"
-  }
-  new_record = data.frame(Date = date, Project = project, Writer = writer, Word.Count = wordcount)
-  my_records <<- rbind(my_records, new_record)
-  write.csv(my_records, file = "data/tracker.csv", row.names = F)
-  paste(writer, " submitted ", 
+    nic_record = data.frame(Date = date, Project = project, WordCount = wordcount, Writer = "Nicaless")
+    my_records <<- rbind(my_records, nic_record)
+    all_records <<- rbind(all_records, nic_record)
+    saveData(nic_record)
+  } else {
+    if (project == "Enter the name of your project...") {
+      project = "Untitled"
+    }
+    if (writer == "Enter your name...") {
+      writer = "anonymous"
+    }
+    new_record = data.frame(Date = date, Project = project, WordCount = wordcount, Writer = writer)
+    all_records <<- rbind(all_records, new_record)
+    paste(writer, " submitted ", 
         wordcount, " for ", 
         project, 
         " on ", date, 
         sep = "")
+  }
 }
 
-#NEED TABLE WRITER + PROJECT + CUM WORD COUNT
-#NEED TABLE DISPLAYING PROJECTS/WRITERS MEETING 500 DAILY WORD COUNT AVERAGE, 2500 WEEKLY WORD COUNT AVERAGE
-
-#NEED SEARCH OPTIONS FOR PROJECT WRITER 
-#NEED CUMULATIVE OPTION
 
 plotWC_proj <- function(minDate = Sys.Date(), maxDate = Sys.Date()) {
-  rawData = my_records
+  rawData = all_records
   rawData$Date = as.Date(rawData$Date)
-  rawData$Word.Count = as.numeric(rawData$Word.Count)
+  rawData$WordCount = as.numeric(rawData$WordCount)
   if (minDate != Sys.Date() & maxDate != Sys.Date()) {
     rawData = subset(rawData, Date >= minDate)
     rawData = subset(rawData, Date <= maxDate)
+    print(rawData)
   }
-  
-  ggplot(data = rawData, aes(x = Date, y = Word.Count, group = Project, colour = Project)) + geom_line()
+  if (length(unique(rawData$Writer)) > 1) {
+    ggplot(data = rawData, aes(x = Date, y = WordCount, group = Writer, colour = Writer)) + geom_point()
+  } else {
+    ggplot(data = rawData, aes(x = Date, y = WordCount, group = Project, colour = Project)) + geom_point()
+  }
 }
 
 plotWC_writer <- function(minDate = Sys.Date(), maxDate = Sys.Date()) {
