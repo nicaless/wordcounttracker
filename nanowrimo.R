@@ -118,8 +118,8 @@ getUserHistory <- function(username) {
     } else {
       userhistories = userhistory
     }
-    return(userhistories)
   }
+  return(userhistories)
 }
 
 plotSummary_Users <- function(usernames) {

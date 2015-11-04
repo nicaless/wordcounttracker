@@ -49,27 +49,19 @@ recordWC <- function(wordcount, date, project, writer) {
   if (wordcount <= 0) {
     return()
   }
-  if(grepl("recordNicaless", project)) {
-    project = unlist(strsplit(project, "[.]"))[2]
-    nic_record = data.frame(Date = date, Project = project, WordCount = wordcount, Writer = "Nicaless")
-    my_records <<- rbind(my_records, nic_record)
-    all_records <<- rbind(all_records, nic_record)
-    saveData(nic_record)
-  } else {
-    if (project == "Enter the name of your project...") {
+  if (project == "Enter the name of your project...") {
       project = "Untitled"
-    }
-    if (writer == "Enter your name...") {
-      writer = "anonymous"
-    }
-    new_record = data.frame(Date = date, Project = project, WordCount = wordcount, Writer = writer)
-    all_records <<- rbind(all_records, new_record)
-    paste(writer, " submitted ", 
-        wordcount, " for ", 
-        project, 
-        " on ", date, 
-        sep = "")
   }
+  if (writer == "Enter your name...") {
+      writer = "anonymous"
+  }
+  new_record = data.frame(Date = date, Project = project, WordCount = wordcount, Writer = writer)
+  all_records <<- rbind(all_records, new_record)
+  paste(writer, " submitted ", 
+      wordcount, " for ", 
+      project, 
+      " on ", date, 
+      sep = "")
 }
 
 
