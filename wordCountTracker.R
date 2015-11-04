@@ -1,6 +1,7 @@
 library(ggplot2)
 library(reshape2)
 library(rdrop2)
+library(googlesheets)
 
 token <- drop_auth()
 saveRDS(token, "droptoken.rds")
@@ -57,6 +58,7 @@ recordWC <- function(wordcount, date, project, writer) {
   }
   new_record = data.frame(Date = date, Project = project, WordCount = wordcount, Writer = writer)
   all_records <<- rbind(all_records, new_record)
+  #saveData(new_record)
   paste(writer, " submitted ", 
       wordcount, " for ", 
       project, 
@@ -65,29 +67,51 @@ recordWC <- function(wordcount, date, project, writer) {
 }
 
 
-plotWC_proj <- function(minDate = Sys.Date(), maxDate = Sys.Date()) {
+plotWC_proj <- function(minDate = Sys.Date(), maxDate = Sys.Date(), plotby = "Project") {
   rawData = all_records
   rawData$Date = as.Date(rawData$Date)
   rawData$WordCount = as.numeric(rawData$WordCount)
   if (minDate != Sys.Date() & maxDate != Sys.Date()) {
     rawData = subset(rawData, Date >= minDate)
     rawData = subset(rawData, Date <= maxDate)
-    print(rawData)
   }
-  if (length(unique(rawData$Writer)) > 1) {
-    ggplot(data = rawData, aes(x = Date, y = WordCount, group = Writer, colour = Writer)) + geom_point()
+  if (plotby == "Writer") {
+    ggplot(data = rawData, aes(x = Date, y = WordCount, group = Writer, colour = Writer)) + geom_point() + scale_colour_hue(l = 45)
   } else {
-    ggplot(data = rawData, aes(x = Date, y = WordCount, group = Project, colour = Project)) + geom_point()
+    ggplot(data = rawData, aes(x = Date, y = WordCount, group = Project, colour = Project)) + geom_point() + scale_colour_hue(l = 45)
   }
 }
 
-plotWC_writer <- function(minDate = Sys.Date(), maxDate = Sys.Date()) {
-  rawData = my_records
+getWC_Summary <- function(minDate = Sys.Date(), maxDate = Sys.Date()) {
+  rawData = all_records
   rawData$Date = as.Date(rawData$Date)
-  rawData$Word.Count = as.numeric(rawData$Word.Count)
+  rawData$WordCount = as.numeric(rawData$WordCount)
   if (minDate != Sys.Date() & maxDate != Sys.Date()) {
     rawData = subset(rawData, Date >= minDate)
     rawData = subset(rawData, Date <= maxDate)
   }
-  ggplot(data = rawData, aes(x = Date, y = Word.Count, group = Writer, colour = Writer)) + geom_line()
+  avg_day = sum(rawData$WordCount) / length(unique(rawData$Date))
+  max_wc = max(rawData$WordCount)
+  topproj = dcast(rawData, Project + Writer ~., value.var = "WordCount", sum)
+  topproj = topproj[topproj[, 3] == max(topproj[, 3]), ]
+  topproj = topproj[1, ]
+  summary = data.frame(AverageWCSubmission = avg_day,
+                       MaxWCSubmission = max_wc,
+                       TopWriter = topproj[, 2],
+                       TopProject = topproj[1, 1],
+                       TopProjectWC = topproj[1, 3])
+  return(summary)
+}
+
+getWC_Table <- function(minDate = Sys.Date(), maxDate = Sys.Date()) {
+  rawData = all_records
+  rawData$Date = as.Date(rawData$Date)
+  rawData$WordCount = as.numeric(rawData$WordCount)
+  if (minDate != Sys.Date() & maxDate != Sys.Date()) {
+    rawData = subset(rawData, Date >= minDate)
+    rawData = subset(rawData, Date <= maxDate)
+  }
+  projs = dcast(rawData, Project + Writer ~., value.var = "WordCount", sum)
+  names(projs)[3] = "Word Count"
+  return(projs)
 }

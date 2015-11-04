@@ -1,6 +1,9 @@
 library(ggplot2)
 library(XML)
 
+#### Color Palette
+cbPalette <- c("#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000", "#E69F00")
+
 #### Site Word Count History
 
 getXML <- function(site) {
@@ -39,22 +42,22 @@ getSiteHistory <- function() {
 plotWC_Site <- function(val = "WordCount") {
   sitehistory = getSiteHistory()
   if (val == "WordCount") {
-    print(ggplot(data = sitehistory, aes(x = Date, y = WordCount)) + geom_line())
+    print(ggplot(data = sitehistory, aes(x = Date, y = WordCount)) + geom_line() + scale_colour_manual(values=cbPalette))
   }
   if (val == "Average") {
-    print(ggplot(data = sitehistory, aes(x = Date, y = Average)) + geom_bar(stat = "identity"))
+    print(ggplot(data = sitehistory, aes(x = Date, y = Average)) + geom_bar(stat = "identity") + scale_fill_manual(values=cbPalette))
   }
   if (val == "Min") {
-    print(ggplot(data = sitehistory, aes(x = Date, y = Min)) + geom_bar(stat = "identity"))
+    print(ggplot(data = sitehistory, aes(x = Date, y = Min)) + geom_bar(stat = "identity") + scale_fill_manual(values=cbPalette))
   }
   if (val == "Max") {
-    print(ggplot(data = sitehistory, aes(x = Date, y = Max)) + geom_bar(stat = "identity"))
+    print(ggplot(data = sitehistory, aes(x = Date, y = Max)) + geom_bar(stat = "identity") + scale_fill_manual(values=cbPalette))
   }
   if (val == "StDev") {
-    print(ggplot(data = sitehistory, aes(x = Date, y = StDev)) + geom_bar(stat = "identity"))
+    print(ggplot(data = sitehistory, aes(x = Date, y = StDev)) + geom_bar(stat = "identity") + scale_fill_manual(values=cbPalette))
   }
   if (val == "Count") {
-    print(ggplot(data = sitehistory, aes(x = Date, y = Count)) + geom_bar(stat = "identity"))
+    print(ggplot(data = sitehistory, aes(x = Date, y = Count)) + geom_bar(stat = "identity") + scale_fill_manual(values=cbPalette))
   }
 }
 
@@ -124,13 +127,13 @@ getUserHistory <- function(username) {
 
 plotSummary_Users <- function(usernames) {
   usersummary = getUserSummary(usernames)
-  ggplot(data = usersummary, aes(x = User, y = TotalWordCount, group = Winner, fill = Winner)) + geom_bar(stat = "identity", width = .5) + coord_flip()
+  ggplot(data = usersummary, aes(x = User, y = TotalWordCount, group = Winner, fill = Winner)) + geom_bar(stat = "identity", width = .5) + coord_flip() + scale_fill_hue(l = 45)
   
 }
 
 plotHistory_Users <- function(usernames) {
   userhistories = getUserHistory(usernames)
-  ggplot(data = userhistories, aes(x = Date, y = CumulativeWordCount, group = Writer, colour = Writer)) + geom_line()
+  ggplot(data = userhistories, aes(x = Date, y = CumulativeWordCount, group = Writer, colour = Writer)) + geom_line() + scale_colour_manual(values=cbPalette)
 }
 
 
@@ -196,16 +199,15 @@ getRegionHistory <- function(regions) {
 plotHistory_Regions <- function(regions, val = "Participants") {
   regionhistory = getRegionHistory(regions)
   if (val == "Participants") {
-    print(ggplot(data = regionhistory, aes(x = Date, y = Participants, group = Region, colour = Region)) + geom_line())
+    print(ggplot(data = regionhistory, aes(x = Date, y = Participants, group = Region, colour = Region)) + geom_line() + scale_colour_manual(values=cbPalette))
   }
   if (val == "Donations") {
-    print(ggplot(data = regionhistory, aes(x = Date, y = Donations, group = Region, fill = Region)) + geom_bar(stat = "identity", width = .5))
+    print(ggplot(data = regionhistory, aes(x = Date, y = Donations, group = Region, fill = Region)) + geom_bar(stat = "identity", width = .5, size = .5) + scale_fill_manual(values=cbPalette))
   }
   if (val == "Donors") {
-    print(ggplot(data = regionhistory, aes(x = Date, y = Donors, group = Region, fill = Region)) + geom_bar(stat = "identity", width = .5))
+    print(ggplot(data = regionhistory, aes(x = Date, y = Donors, group = Region, fill = Region)) + geom_bar(stat = "identity", width = .5) + scale_fill_manual(values=cbPalette))
   }
   if (val == "WCAverage") {
-    print(ggplot(data = regionhistory, aes(x = Date, y = WCAverage, group = Region, colour = Region)) + geom_line())
+    print(ggplot(data = regionhistory, aes(x = Date, y = WCAverage, group = Region, colour = Region)) + geom_line() + scale_colour_manual(values=cbPalette))
   }
 }
-
