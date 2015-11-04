@@ -78,8 +78,12 @@ printSummary_Site <- function() {
 
 getUserSummary <- function(usernames) {
   url.path = "http://nanowrimo.org/wordcount_api/wchistory/"
-  usernames = unlist(strsplit(usernames, ","))
+  if (usernames == "") {
+    usernames = "nicaless"
+  }
   
+  usernames = unlist(strsplit(usernames, ","))
+
   for (i in usernames) {
     user.path = paste(url.path, i, sep = "")
     xmltop.user = getXML(user.path)
@@ -100,6 +104,9 @@ getUserSummary <- function(usernames) {
 
 getUserHistory <- function(username) {
   url.path = "http://nanowrimo.org/wordcount_api/wchistory/"
+  if (username == "") {
+    username = "nicaless"
+  }
   usernames = unlist(strsplit(username, ","))
   
   for (i in usernames) {
@@ -141,6 +148,9 @@ plotHistory_Users <- function(usernames) {
 
 getRegionSummary <- function(regions) {
   url.path = "http://nanowrimo.org/wordcount_api/wcregion/"
+  if (regions == "") {
+    regions = "usa-california-san-francisco"
+  }
   regions = unlist(strsplit(regions, ","))
   
   for (i in regions) {
@@ -165,6 +175,10 @@ getRegionSummary <- function(regions) {
 
 getRegionHistory <- function(regions) {
   url.path = "http://nanowrimo.org/wordcount_api/wcregionhist/"
+  if (regions == "") {
+    regions = "usa-california-san-francisco"
+  }
+  
   regions = unlist(strsplit(regions, ","))
   
   for (i in regions) {
