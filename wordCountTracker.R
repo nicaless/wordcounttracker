@@ -43,6 +43,7 @@ loadData <- function() {
 my_records <<- loadData()
 my_records$Date = as.Date(my_records$Date)
 all_records <<- my_records
+MinDate <<- min(all_records$Date)
 
 recordWC <- function(wordcount, date, project, writer) {
   date = as.Date(date)
@@ -67,14 +68,19 @@ recordWC <- function(wordcount, date, project, writer) {
 }
 
 
-plotWC_proj <- function(minDate = Sys.Date(), maxDate = Sys.Date(), plotby = "Project") {
+plotWC_proj <- function(minDate = MinDate, maxDate = Sys.Date(), plotby = "Project") {
   rawData = all_records
   rawData$Date = as.Date(rawData$Date)
   rawData$WordCount = as.numeric(rawData$WordCount)
-  if (minDate != Sys.Date() & maxDate != Sys.Date()) {
-    rawData = subset(rawData, Date >= minDate)
-    rawData = subset(rawData, Date <= maxDate)
+#   if (minDate >= maxDate) {
+#     minDate = maxDate - 30
+#   }
+  if (minDate == MinDate & maxDate - minDate > 700) {
+    minDate = maxDate = 60
   }
+  rawData = subset(rawData, Date >= minDate)
+  rawData = subset(rawData, Date <= maxDate)
+  
   if (plotby == "Writer") {
     ggplot(data = rawData, aes(x = Date, y = WordCount, group = Writer, colour = Writer)) + geom_point() + scale_colour_hue(l = 45)
   } else {
@@ -82,14 +88,17 @@ plotWC_proj <- function(minDate = Sys.Date(), maxDate = Sys.Date(), plotby = "Pr
   }
 }
 
-getWC_Summary <- function(minDate = Sys.Date(), maxDate = Sys.Date()) {
+getWC_Summary <- function(minDate = MinDate, maxDate = Sys.Date()) {
   rawData = all_records
   rawData$Date = as.Date(rawData$Date)
   rawData$WordCount = as.numeric(rawData$WordCount)
-  if (minDate != Sys.Date() & maxDate != Sys.Date()) {
-    rawData = subset(rawData, Date >= minDate)
-    rawData = subset(rawData, Date <= maxDate)
-  }
+  
+#   if (minDate >= maxDate) {
+#     minDate = maxDate - 30
+#   }
+  rawData = subset(rawData, Date >= minDate)
+  rawData = subset(rawData, Date <= maxDate)
+  
   avg_day = sum(rawData$WordCount) / length(unique(rawData$Date))
   max_wc = max(rawData$WordCount)
   topproj = dcast(rawData, Project + Writer ~., value.var = "WordCount", sum)
@@ -97,21 +106,23 @@ getWC_Summary <- function(minDate = Sys.Date(), maxDate = Sys.Date()) {
   topproj = topproj[1, ]
   summary = data.frame(AverageWCSubmission = avg_day,
                        MaxWCSubmission = max_wc,
-                       TopWriter = topproj[, 2],
+                       TopWriter = topproj[1, 2],
                        TopProject = topproj[1, 1],
                        TopProjectWC = topproj[1, 3])
   return(summary)
 }
 
-getWC_Table <- function(minDate = Sys.Date(), maxDate = Sys.Date()) {
+getWC_Table <- function(minDate = MinDate, maxDate = Sys.Date()) {
   rawData = all_records
   rawData$Date = as.Date(rawData$Date)
   rawData$WordCount = as.numeric(rawData$WordCount)
-  if (minDate != Sys.Date() & maxDate != Sys.Date()) {
-    rawData = subset(rawData, Date >= minDate)
-    rawData = subset(rawData, Date <= maxDate)
-  }
-  projs = dcast(rawData, Project + Writer ~., value.var = "WordCount", sum)
+#   if (minDate >= maxDate) {
+#     minDate = maxDate - 30
+#   }
+  rawData = subset(rawData, Date >= minDate)
+  rawData = subset(rawData, Date <= maxDate)
+  
+  projs = dcast(rawData, Project + Writer ~., value.var = "WordCount", sum, na.rm = T)
   names(projs)[3] = "Word Count"
   return(projs)
 }

@@ -12,7 +12,9 @@ shinyUI(fluidPage(
       p("Send and questions/concerns/feedback to nfronda@gmail.com"),
       
       dateRangeInput("daterange", 
-                     label = "Date range"),
+                     label = "Date range",
+                     start = Sys.Date() - 60,
+                     end = Sys.Date()),
       selectInput("main_val", 
                   label = "Writer/Project",
                   choices = list("Project",
@@ -79,7 +81,8 @@ shinyUI(fluidPage(
               plotOutput("nano_region_history"),
               h5("User Stats"),
               plotOutput("nano_user_summary"),
-              plotOutput("nano_user_history")
+              plotOutput("nano_user_history"),
+              plotOutput("nano_user_forecast")
     )
   )
 ))

@@ -41,6 +41,10 @@ shinyServer(function(input, output) {
     plotHistory_Users(input$user)
   })
   
+  output$nano_user_forecast <- renderPlot({
+    forecastCompletion(input$user[1])
+  })
+  
   submitWC <- eventReactive(input$submit3, {
     recordWC(input$words, input$date, input$project, input$writer)
   })

@@ -1,5 +1,7 @@
 library(ggplot2)
 library(XML)
+library(forecast)
+library(xts)
 
 #### Color Palette
 cbPalette <- c("#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000", "#E69F00")
@@ -225,3 +227,46 @@ plotHistory_Regions <- function(regions, val = "Participants") {
     print(ggplot(data = regionhistory, aes(x = Date, y = WCAverage, group = Region, colour = Region)) + geom_line() + scale_colour_manual(values=cbPalette))
   }
 }
+
+
+###
+
+plotRegionSummaryCorr <- function(regions, x_val = "Participants", y_val = "WordCount") {
+  regionsummary = getRegionSummary(regions)
+  report = data.frame(x = regionsummary[, x_val], y = regionsummary[, y_val])
+  ggplot(data = regionsummary, aes(x = Participants, y = WordCount, group = 1, colour = Region)) + 
+    geom_point() + 
+    labs(x = "Participants", y="WordCount") + 
+    geom_smooth(method = lm)
+  
+}
+
+forecastAvgUserCompletion <- function(id = "") {
+  if (id == "") {
+    id = "Site"
+    report = getSiteHistory()
+    report$CumulAvg = report$Average
+  } else {
+    report = getRegionHistory(id[1])
+    report$CumulAvg = report$WCAverage
+  }
+  my_df = data.frame(x = report$Date, y = report$CumulAvg)
+  ts = xts(my_df$y, my_df$x)
+  fit = ets(ts)
+  plot(forecast(fit), 
+       main = paste("Forecast Average User Wordcount for ", id[1], sep = ""), 
+       xlab = "Days Since NaNoWriMo Start", ylab = "Average Daily WordCount")
+}
+
+forecastCompletion <- function(id) {
+  report = getUserHistory(id[1])
+  my_df = data.frame(x = report$Date, y = cumsum(report$WordCount))
+  plot_label = paste("Forecast Wordcount for ", id[1], sep = "")
+ 
+  ts = xts(my_df$y, my_df$x)
+  fit = ets(ts)
+  plot(forecast(fit), 
+       main = plot_label, 
+       xlab = "Days Since NaNoWriMo Start", ylab = "WordCount")
+}
+
