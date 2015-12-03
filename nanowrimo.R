@@ -3,7 +3,7 @@ library(XML)
 library(forecast)
 library(xts)
 
-#### Color Palette
+#### Color Palette (might kill this palette later)
 cbPalette <- c("#56B4E9", "#009E73", "#F0E442", "#0072B2", "#D55E00", "#CC79A7", "#000000", "#E69F00")
 
 #### Site Word Count History
@@ -16,14 +16,21 @@ getXML <- function(site) {
 }
 
 xmltop.site <<- getXML("http://nanowrimo.org/wordcount_api/wcstats")
+xmltop.sitesummary <<- getXML("http://nanowrimo.org/wordcount_api/wcstatssummary")
 
 getSiteSummary <- function() {
   #sitewordcount = as.numeric(unname(unlist(xmltop.site[[1]][[1]]))[2])
   #numparticipants = as.numeric(unname(unlist(xmltop.site[[2]][[1]]))[2])
-  sitewordcount = as.numeric(xmlValue(xmltop.site[[1]]))
-  numparticipants = as.numeric(xmlValue(xmltop.site[[2]]))
+  sitewordcount = as.numeric(xmlValue(xmltop.sitesummary[[1]]))
+  numparticipants = as.numeric(xmlValue(xmltop.sitesummary[[6]]))
+  min = as.numeric(xmlValue(xmltop.sitesummary[[2]]))
+  max = as.numeric(xmlValue(xmltop.sitesummary[[3]]))
+  avg = as.numeric(xmlValue(xmltop.sitesummary[[4]]))
+  stdev = as.numeric(xmlValue(xmltop.sitesummary[[5]]))
   
-  sitesummary = data.frame(SiteWordCount = sitewordcount, TotalParticipants = numparticipants)
+  sitesummary = data.frame(SiteWordCount = sitewordcount, TotalParticipants = numparticipants,
+                           MinWordCount = min, MaxWordCount = max, WordCountAverage = avg,
+                           WordCountStDev = stdev)
   return(sitesummary)
 }
 
@@ -221,7 +228,7 @@ plotHistory_Regions <- function(regions, val = "Participants") {
     print(ggplot(data = regionhistory, aes(x = Date, y = Donations, group = Region, fill = Region)) + geom_bar(stat = "identity", width = .5, size = .5) + scale_fill_manual(values=cbPalette))
   }
   if (val == "Donors") {
-    print(ggplot(data = regionhistory, aes(x = Date, y = Donors, group = Region, fill = Region)) + geom_bar(stat = "identity", width = .5) + scale_fill_manual(values=cbPalette))
+    print(ggplot(data = regionhistory, aes(x = Date, y = Donors, group = Region, fill = Region)) + geom_bar(stat = "identity", width = .5) + scale_fill_manual(values=cbPalette)) 
   }
   if (val == "WCAverage") {
     print(ggplot(data = regionhistory, aes(x = Date, y = WCAverage, group = Region, colour = Region)) + geom_line() + scale_colour_manual(values=cbPalette))
@@ -229,33 +236,67 @@ plotHistory_Regions <- function(regions, val = "Participants") {
 }
 
 
-###
+### Past WriMo Data
+past_region_history_data <<- read.csv("data/regionhistory_11_2015.csv", stringsAsFactors = F)
+past_region_history_data$Date = as.Date(past_region_history_data$Date)
 
-plotRegionSummaryCorr <- function(regions, x_val = "Participants", y_val = "WordCount") {
-  regionsummary = getRegionSummary(regions)
-  report = data.frame(x = regionsummary[, x_val], y = regionsummary[, y_val])
-  ggplot(data = regionsummary, aes(x = Participants, y = WordCount, group = 1, colour = Region)) + 
-    geom_point() + 
-    labs(x = "Participants", y="WordCount") + 
-    geom_smooth(method = lm)
-  
+past_site_summary <<- read.csv("data/sitesummary_11_2015.csv", stringsAsFactors = F)
+
+past_region_summary <<- read.csv("data/regionsummary_11_2015.csv", stringsAsFactors = F)
+
+
+printSiteTable <- function(wrimo){
+  report = subset(past_site_summary, WriMo %in% wrimo)
+  print(report)
 }
 
-forecastAvgUserCompletion <- function(id = "") {
-  if (id == "") {
-    id = "Site"
-    report = getSiteHistory()
-    report$CumulAvg = report$Average
-  } else {
-    report = getRegionHistory(id[1])
-    report$CumulAvg = report$WCAverage
+printWinnerTable <- function(region_names, wrimo){
+  rawData = subset(past_region_summary, WriMo %in% wrimo)
+  WordCount = dcast(rawData, Region ~., value.var = "WordCount", sum)
+  WordCount = WordCount[order(WordCount[, 2], decreasing = T), ][1, ]
+  
+  Donations = dcast(rawData, Region ~., value.var = "Donations", sum)[1,]
+  Donations = Donations[order(Donations[, 2], decreasing = T), ][1, ]
+  
+  Donors = dcast(rawData, Region ~., value.var = "Donors", sum)[1,]
+  Donors = Donors[order(Donors[, 2], decreasing = T), ][1, ]
+  
+  WordCountAverage = dcast(rawData, Region ~., value.var = "WordCountAverage", sum)[1,]
+  WordCountAverage = WordCountAverage[order(WordCountAverage[, 2], decreasing = T), ][1, ]
+  
+  DonationParticipantRatio = dcast(rawData, Region ~., value.var = "DonationParticipantRatio", sum)[1,]
+  DonationParticipantRatio = DonationParticipantRatio[order(DonationParticipantRatio[, 2], decreasing = T), ][1, ]
+  
+  DonorParticipantRatio = dcast(rawData, Region ~., value.var = "DonorParticipantRatio", sum)[1,]
+  DonorParticipantRatio = DonorParticipantRatio[order(DonorParticipantRatio[, 2], decreasing = T), ][1, ]
+  
+  DonationWordCountRatio = dcast(rawData, Region ~., value.var = "DonationWordCountRatio", sum)[1,]
+  DonationWordCountRatio = DonationWordCountRatio[order(DonationWordCountRatio[, 2], decreasing = T), ][1, ]
+  
+  Categories = c("WordCount","Donations", "Donors", "WordCountAverage", "DonationParticipantRatio", 
+                 "DonorParticipantRatio","DonationWordCountRatio")
+  TopRegion = c(WordCount[1,1], Donations[1,1], Donors[1,1], WordCountAverage[1,1],
+                DonationParticipantRatio[1,1], DonorParticipantRatio[1,1],DonationWordCountRatio[1,1])
+  Value = c(WordCount[1,2], Donations[1,2], Donors[1,2], WordCountAverage[1,2],
+            DonationParticipantRatio[1,2], DonorParticipantRatio[1,2],DonationWordCountRatio[1,2])
+  report = cbind(Categories, TopRegion, Value)
+  print(report)
+}
+
+plotRegionHistoryCorr <- function(region_names, wrimo, x_val, y_val, type) {
+  rawData = subset(past_region_history_data, WriMo == wrimo)
+  rawData = subset(rawData, Region %in% region_names, select = c(x_val, y_val, "Region"))
+  report = data.frame(X_Val = rawData[, x_val], Y_Val = rawData[, y_val], Region = as.character(rawData[, "Region"]))
+  report$Region = as.character(report$Region)
+  if (type == "bar") {
+    print(ggplot(data = report, aes(x = X_Val, y = Y_Val, group = Region, fill = Region)) + geom_bar(stat = "identity") + labs(x = x_val, y = y_val) + theme(legend.position="bottom") + guides(col=guide_legend(ncol = 3)))
   }
-  my_df = data.frame(x = report$Date, y = report$CumulAvg)
-  ts = xts(my_df$y, my_df$x)
-  fit = ets(ts)
-  plot(forecast(fit), 
-       main = paste("Forecast Average User Wordcount for ", id[1], sep = ""), 
-       xlab = "Days Since NaNoWriMo Start", ylab = "Average Daily WordCount")
+  if (type == "line") {
+    print(ggplot(data = report, aes(x = X_Val, y = Y_Val, group = Region, colour = Region)) + geom_line() + labs(x = x_val, y = y_val) + theme(legend.position="bottom") + guides(col=guide_legend(ncol = 3))) 
+  }
+  if (type == "scatter") {
+    print(ggplot(data = report, aes(x = X_Val, y = Y_Val, group = Region, colour = Region)) + geom_point() + labs(x = x_val, y = y_val) + geom_smooth(method = lm) + theme(legend.position="bottom") + guides(col=guide_legend(ncol = 3)))
+  }
 }
 
 forecastCompletion <- function(id) {

@@ -59,7 +59,7 @@ recordWC <- function(wordcount, date, project, writer) {
   }
   new_record = data.frame(Date = date, Project = project, WordCount = wordcount, Writer = writer)
   all_records <<- rbind(all_records, new_record)
-  #saveData(new_record)
+  saveData(new_record)
   paste(writer, " submitted ", 
       wordcount, " for ", 
       project, 
@@ -124,5 +124,5 @@ getWC_Table <- function(minDate = MinDate, maxDate = Sys.Date()) {
   
   projs = dcast(rawData, Project + Writer ~., value.var = "WordCount", sum, na.rm = T)
   names(projs)[3] = "Word Count"
-  return(projs)
+  return(head(projs, n = 5))
 }
