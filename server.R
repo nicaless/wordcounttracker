@@ -1,6 +1,6 @@
 library(shiny)
-library(ggplot2)
-library(reshape2)
+#library(ggplot2)
+#library(reshape2)
 source("wordCountTracker.R")
 source("nanowrimo.R")
 
@@ -26,6 +26,10 @@ shinyServer(function(input, output) {
     submitWC()
   })
   
+  output$past_site <- renderPlot({
+    plotSiteHistory(input$past, input$past_graph_type)
+  })
+  
   output$past_regions <- renderPlot({
     plotRegionHistoryCorr(input$past_regions, input$past, input$past_plotx, input$past_ploty, input$past_graph_type)
   })
@@ -34,7 +38,7 @@ shinyServer(function(input, output) {
     printWinnerTable(input$past_regionsm, input$past)
   }, include.rownames=FALSE)
   
-  output$past_site <- renderTable({
+  output$past_site_summary <- renderTable({
     printSiteTable(input$past)
   }, include.rownames=FALSE)
   

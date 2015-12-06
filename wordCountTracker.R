@@ -72,9 +72,6 @@ plotWC_proj <- function(minDate = MinDate, maxDate = Sys.Date(), plotby = "Proje
   rawData = all_records
   rawData$Date = as.Date(rawData$Date)
   rawData$WordCount = as.numeric(rawData$WordCount)
-#   if (minDate >= maxDate) {
-#     minDate = maxDate - 30
-#   }
   if (minDate == MinDate & maxDate - minDate > 700) {
     minDate = maxDate = 60
   }
@@ -93,9 +90,6 @@ getWC_Summary <- function(minDate = MinDate, maxDate = Sys.Date()) {
   rawData$Date = as.Date(rawData$Date)
   rawData$WordCount = as.numeric(rawData$WordCount)
   
-#   if (minDate >= maxDate) {
-#     minDate = maxDate - 30
-#   }
   rawData = subset(rawData, Date >= minDate)
   rawData = subset(rawData, Date <= maxDate)
   
@@ -116,9 +110,7 @@ getWC_Table <- function(minDate = MinDate, maxDate = Sys.Date()) {
   rawData = all_records
   rawData$Date = as.Date(rawData$Date)
   rawData$WordCount = as.numeric(rawData$WordCount)
-#   if (minDate >= maxDate) {
-#     minDate = maxDate - 30
-#   }
+
   rawData = subset(rawData, Date >= minDate)
   rawData = subset(rawData, Date <= maxDate)
   

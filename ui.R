@@ -1,18 +1,23 @@
 library(shiny)
 
 
-past_region_history_data <<- read.csv("data/regionhistory_11_2015.csv", stringsAsFactors = F)
-regions_list = unique(past_region_history_data$Region)
+past_region_history_data <- read.csv("data/regionnames.csv", stringsAsFactors = F)
+regions_list = unique(past_region_history_data$RegionNames)
 
 shinyUI(fluidPage(
   titlePanel("Simple Word Count Tracker"),
   
   sidebarLayout(
     sidebarPanel(
-      p("We adore the NaNoWriMo word count tracker, so we decided to make one of our own to use year round!"),
-      p("For fun, we also played around with NaNoWriMo's 'wcapi' to visualize everyone's novel-writing progress with R. Take a look!"),
-      p("You can find the code for this app at https://github.com/nicaless/wordcounttracker"),
-      p("Send and questions/concerns/feedback to nfronda@gmail.com"),
+      div(
+        p("We adore the NaNoWriMo word count tracker, so we decided to make one of our own to use year round!"), 
+        p("For fun, we also played around with NaNoWriMo's 'wcapi' to visualize everyone's novel-writing progress with R. Take a look!"),
+        HTML(paste("You can find the code for this app on ", a(href="https://github.com/nicaless/wordcounttracker", "my GitHub"), 
+                   " and read more about it on ", 
+                   a(href="http://nicaless.github.io/2015/11/09/My%20First%20Shiny%20App.html", "my blog."))),
+        br(),
+        br(),
+        p("Send any questions/concerns/feedback to nfronda@gmail.com") ),
       
       ### Year Round - My Personal Writing (and others who enter their writing stats)
       h4("My Personal Word Count Tracker. See what I'm writing!"),
@@ -45,17 +50,10 @@ shinyUI(fluidPage(
       textOutput("confirm"),
       
       h4("See how the world wrote in past NaNoWriMos"),
-      ##add more info here later
       selectInput("past",
-                  label = "Past WriMos",
+                  label = "Past NaNoWriMo Date",
                   choices = list("November 2015"),
                   selected = list("November 2015"),
-                  multiple = T),
-      selectInput("past_regions",
-                  label = "Regions",
-                  choices = regions_list,
-                  selected = list("USA :: California :: San Francisco","Europe :: England :: London",
-                                  "Europe :: France :: Paris","USA :: New York :: New York City"),
                   multiple = T),
       selectInput("past_plotx",
                   label = "X axis value",
@@ -72,38 +70,46 @@ shinyUI(fluidPage(
       selectInput("past_graph_type",
                   label = "Graph Type",
                   choices = list("bar","scatter","line"),
-                  selected = "bar")
+                  selected = "bar"),
+      selectInput("past_regions",
+                  label = "Regions",
+                  choices = regions_list,
+                  selected = list("USA :: California :: San Francisco","Europe :: England :: London",
+                                  "Europe :: France :: Paris","USA :: New York :: New York City"),
+                  multiple = T),
   
       
       
       
       #### Only for when NaNoWriMo is in Session CLEAN UP BEFORE NEXT NANOWRIMO
-#       h4("See how the world is writing this NaNoWriMo"),
-#       selectInput("nano_site", 
-#                   label = "Site Stats",
-#                   choices = list("WordCount",
-#                                  "Average")
-#                                  ),
-#       h5("Region Stats"),
-#       p("A list of all valid Regions can be found on the NaNoWriMo website. 
-#         Follow the example below to enter a region name and see its stats. 
-#         Enter multiple regions separated by commas."),
-#       textInput("region",
-#                 label = "Region",
-#                 value = "usa-california-san-francisco"),
-#       selectInput("region_val", 
-#                   label = "Metric",
-#                   choices = list("Donations",
-#                                  "Donors",
-#                                  "Participants",
-#                                  "WCAverage")
-#                   ),
-#       h5("User Stats"),
-#       p("Enter a WriMos' username below to see their progress!
-#         Enter multiple usernames separated by commas."),
-#       textInput("user",
-#                 label = "Username",
-#                 value = "nicaless")
+      h4("See how the world is writing this NaNoWriMo"),
+      selectInput("nano_site", 
+                  label = "Site Stats",
+                  choices = list("WordCount",
+                                 "Average")
+                                 ),
+      h5("Region Stats"),
+      p("A list of all valid Regions can be found on the NaNoWriMo website. 
+        Follow the example below to enter a region name and see its stats. 
+        Enter multiple regions separated by commas."),
+      # Might change this so regions are a select input as above 
+      #and then parse to the '-' format from the '::' format
+      textInput("region",
+                label = "Region",
+                value = "usa-california-san-francisco"),
+      selectInput("region_val", 
+                  label = "Metric",
+                  choices = list("Donations",
+                                 "Donors",
+                                 "Participants",
+                                 "WCAverage")
+                  ),
+      h5("User Stats"),
+      p("Enter a WriMos' username below to see their progress!
+        Enter multiple usernames separated by commas."),
+      textInput("user",
+                label = "Username",
+                value = "nicaless")
   ),
       
     mainPanel(h4("Words Written over Time"),
@@ -113,24 +119,25 @@ shinyUI(fluidPage(
               tableOutput("main_projs"),
               
               h4("Past NaNoWriMo Stats"),
+              plotOutput("past_site"),
               plotOutput("past_regions"),
-              p("Top Regions of past WriMos (if multiple WriMos selected, shows Top Regions over all selected WriMos"),
+              p(strong("Top Regions of past NaNoWriMos (if multiple sessions selected, shows Top Regions over all selected NaNoWriMos")),
               tableOutput("past_regions_top"),
-              p("Site Stats of past WriMos"),
-              tableOutput("past_site")
+              p(strong("Site Stats of past NaNoWriMos")),
+              tableOutput("past_site_summary"),
               
               ### Only when NaNoWriMo in Session
-#               h4("NaNoWriMo Stats"),
-#               htmlOutput("NaNo_in_session"),
-#               h5("Site Stats"),
-#               plotOutput("nano_site"),
-#               h5("Region Stats"),
-#               tableOutput("nano_region_summary"),
-#               plotOutput("nano_region_history"),
-#               h5("User Stats"),
-#               plotOutput("nano_user_summary"),
-#               plotOutput("nano_user_history"),
-#               plotOutput("nano_user_forecast")
+              h4("Current NaNoWriMo Stats"),
+              htmlOutput("NaNo_in_session"),
+              h5("Site Stats"),
+              plotOutput("nano_site"),
+              h5("Region Stats"),
+              tableOutput("nano_region_summary"),
+              plotOutput("nano_region_history"),
+              h5("User Stats"),
+              plotOutput("nano_user_summary"),
+              plotOutput("nano_user_history"),
+              plotOutput("nano_user_forecast")
     )
   )
 ))
