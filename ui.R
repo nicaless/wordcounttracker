@@ -10,14 +10,15 @@ shinyUI(fluidPage(
   sidebarLayout(
     sidebarPanel(
       div(
-        p("We adore the NaNoWriMo word count tracker, so we decided to make one of our own to use year round!"), 
-        p("For fun, we also played around with NaNoWriMo's 'wcapi' to visualize everyone's novel-writing progress with R. Take a look!"),
+        p("I love the NaNoWriMo word count tracker, so I decided to make one of my own to use year round!"), 
+        p("For fun, I also played around with NaNoWriMo's word count web API to visualize everyone's novel-writing progress with R. Take a look!"),
         HTML(paste("You can find the code for this app on ", a(href="https://github.com/nicaless/wordcounttracker", "my GitHub"), 
                    " and read more about it on ", 
                    a(href="http://nicaless.github.io/2015/11/09/My%20First%20Shiny%20App.html", "my blog."))),
         br(),
         br(),
-        p("Send any questions/concerns/feedback to nfronda@gmail.com") ),
+        p("Send any questions/concerns/feedback to nfronda@gmail.com"),
+        p("DISCLAIMER: I am in no way affiliated with NaNoWriMo. This project was created using publicly available data from NaNoWriMo.org for personal research interests.")),
       
       ### Year Round - My Personal Writing (and others who enter their writing stats)
       h4("My Personal Word Count Tracker. See what I'm writing!"),
@@ -119,9 +120,11 @@ shinyUI(fluidPage(
               tableOutput("main_projs"),
               
               h4("Past NaNoWriMo Stats"),
+              p(strong("Past Site Data")),
               plotOutput("past_site"),
+              p(strong("Past Regional Data")),
               plotOutput("past_regions"),
-              p(strong("Top Regions of past NaNoWriMos (if multiple sessions selected, shows Top Regions over all selected NaNoWriMos")),
+              p(strong("Top Regions of past NaNoWriMos (if multiple sessions selected, shows Top Regions over all selected NaNoWriMos)")),
               tableOutput("past_regions_top"),
               p(strong("Site Stats of past NaNoWriMos")),
               tableOutput("past_site_summary"),

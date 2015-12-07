@@ -226,6 +226,7 @@ plotHistory_Users <- function(usernames) {
 }
 
 forecastCompletion <- function(id) {
+  id = unlist(strsplit(id, ","))
   report = getUserHistory(id[1])
   my_df = data.frame(x = report$Date, y = cumsum(report$WordCount))
   plot_label = paste("Forecast Wordcount for ", id[1], sep = "")
@@ -239,6 +240,8 @@ forecastCompletion <- function(id) {
 
 
 #### Regional Word Count Summary
+
+#need to implement pre-parsing region names before feeding into getRegionX functions 
 
 getRegionSummary <- function(regions) {
   url.path = "http://nanowrimo.org/wordcount_api/wcregion/"
