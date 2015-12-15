@@ -47,22 +47,26 @@ user_history$Submitted[user_history$WordCount != 0] = 1
 first_half = subset(user_history, Date <= as.Date("2015-11-15"))
 
 submissions1 = dcast(first_half, Writer ~., value.var = "Submitted", sum)
-wc_avg1 = dcast(first_half, Writer ~., value.var = "WordCount", mean)
+wc1 = dcast(first_half, Writer ~., value.var = "WordCount", sum)
 
 data_first_half = data.frame(Writer = submissions1[, 1], 
                              WCSubmissions = submissions1[, 2],
-                             WCAvg = wc_avg1[, 2])
+                             WCAvg = wc1[, 2]/submissions1[, 2])
+
+data_first_half$WCAvg[data_first_half$WCSubmissions == 0] = 0
 
 # Second Half of November
 
 second_half = subset(user_history, Date > as.Date("2015-11-15"))
 
 submissions2 = dcast(second_half, Writer ~., value.var = "Submitted", sum)
-wc_avg2 = dcast(second_half, Writer ~., value.var = "WordCount", mean)
+wc2 = dcast(second_half, Writer ~., value.var = "WordCount", sum)
 
 data_second_half = data.frame(Writer = submissions2[, 1], 
                              WCSubmissions = submissions2[, 2],
-                             WCAvg = wc_avg2[, 2])
+                             WCAvg = wc2[, 2]/submissions2[, 2])
+
+data_second_half$WCAvg[data_second_half$WCSubmissions == 0] = 0
 
 
 # Merge with Winner or Not
