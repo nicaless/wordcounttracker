@@ -36,6 +36,9 @@ users = c("rachel-b-moore", "abookishbabe", "alexabexis", "AllYellowFlowers", "a
           "MrLasers", "NW_Rose", "otakubookworm123")
 
 user_history = getUserHistory(users)
+
+#Find number of times a user updated their word count, aka any row that isn't 0.  
+
 user_history$Submitted = 0
 user_history$Submitted[user_history$WordCount != 0] = 1
 
