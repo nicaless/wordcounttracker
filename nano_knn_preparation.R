@@ -87,4 +87,7 @@ data_second_half$Writer = as.character(data_second_half$Writer)
 
 write.csv(data_first_half, file = "NaNo_Writers_first_half.csv")
 write.csv(data_second_half, file = "NaNo_Writers_second_half.csv")
+write.csv(user_summary, file = "NaNo_Writers_summary.csv")
+write.csv(user_history, file = "NaNo_Writers_history.csv")
+
 
