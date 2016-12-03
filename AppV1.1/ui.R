@@ -1,13 +1,11 @@
-library(shinydashboard)
-library(plotly)
+library(shiny)
 
-### UTILIZE STRUCTURE FROM WORK UI
 
 past_region_history_data <- read.csv("data/regionnames.csv", stringsAsFactors = F)
 regions_list = unique(past_region_history_data$RegionNames)
 
 shinyUI(fluidPage(
-  titlePanel("Word Count Tracker"),
+  titlePanel("Simple Word Count Tracker"),
   
   sidebarLayout(
     sidebarPanel(
